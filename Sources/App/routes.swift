@@ -1,11 +1,7 @@
 import Vapor
 
-func routes(_ app: Application) throws {
-    app.get { req in
-        return req.view.render("index", ["title": "Hello Vapor!"])
-    }
-
-    app.get("hello") { req -> String in
-        return "Hello, world!"
-    }
+func routes(_ application: Application, twilioConfig: TwilioConfig) throws {
+    let twilioRepository = TwilioAPIRepository(client: application.client, twilioConfig: twilioConfig)
+    let messageController = MessageController(application: application, repository: twilioRepository)
+    application.get(use: messageController.get(request:))
 }

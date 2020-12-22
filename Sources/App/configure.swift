@@ -2,14 +2,12 @@ import Leaf
 import Vapor
 
 // configures your application
-public func configure(_ app: Application) throws {
-    // uncomment to serve files from /Public folder
-    // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
-
-    app.views.use(.leaf)
-
-    
+public func configure(_ application: Application) throws {
+    application.views.use(.leaf)
 
     // register routes
-    try routes(app)
+    guard let twilioConfig = TwilioConfig.fromEnvironment() else {
+        preconditionFailure("Cannot read twilio config from environment")
+    }
+    try routes(application, twilioConfig: twilioConfig)
 }
