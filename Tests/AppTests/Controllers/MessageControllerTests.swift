@@ -1,5 +1,6 @@
 import Vapor
 import XCTest
+import XCTVapor
 
 @testable import App
 
@@ -19,7 +20,9 @@ class MessageControllerTests: XCTestCase {
         application.views.use { app -> ViewRenderer in
             return renderer
         }
-        application.get(use: controller.get(request:))
+        
+        let group = application.grouped(User.basicAuthMiddleware(BasicAuthConfig(realm: "Test", username: "user", password: "pass1")))
+        group.get(use: controller.get(request:))
     }
     
     override func tearDown() {
@@ -28,7 +31,7 @@ class MessageControllerTests: XCTestCase {
     
     func testLatestMessageThatIsNotOld() throws {
         repository.message = Message(body: "Testing a new message", sent: Date().addingTimeInterval(-10))
-        try application.test(.GET, "/") { response in
+        try application.test(.GET, "/", beforeRequest: beforeRequest) { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertEqual(response.body.string, #"{"message":"Testing a new message"}"#)
         }
@@ -36,10 +39,14 @@ class MessageControllerTests: XCTestCase {
     
     func testLastestMessageThatIsOld() throws {
         repository.message = Message(body: "Testing an old message", sent: Date().addingTimeInterval(-130))
-        try application.test(.GET, "/") { response in
+        try application.test(.GET, "/", beforeRequest: beforeRequest) { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertEqual(response.body.string, #"{"message":"(no message to show)"}"#)
         }
+    }
+    
+    private func beforeRequest(_ request: inout XCTHTTPRequest) throws {
+        request.headers.basicAuthorization = BasicAuthorization(username: "user", password: "pass1")
     }
     
 }

@@ -1,7 +1,13 @@
 import Vapor
 
-func routes(_ application: Application, twilioConfig: TwilioConfig) throws {
+func routes(_ application: Application, basicAuthConfig: BasicAuthConfig, twilioConfig: TwilioConfig) throws {
+    let authenticators = [
+        User.basicAuthMiddleware(basicAuthConfig),
+        User.guardMiddleware()
+    ]
     let twilioRepository = TwilioAPIRepository(client: application.client, twilioConfig: twilioConfig)
     let messageController = MessageController(application: application, repository: twilioRepository)
-    application.get(use: messageController.get(request:))
+
+    let authenticatedRouter = application.grouped(authenticators)
+    authenticatedRouter.get(use: messageController.get(request:))
 }

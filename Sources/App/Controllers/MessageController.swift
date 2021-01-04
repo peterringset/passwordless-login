@@ -6,6 +6,8 @@ struct MessageController {
     let repository: TwilioRepository
     
     func get(request: Request) throws -> EventLoopFuture<View> {
+        _ = try request.auth.require(User.self)
+        
         return repository.latestMessage().optionalMap { message -> Message? in
             if message.sent < Date().addingTimeInterval(-120) {
                 return nil

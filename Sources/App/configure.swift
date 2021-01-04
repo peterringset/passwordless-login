@@ -9,5 +9,8 @@ public func configure(_ application: Application) throws {
     guard let twilioConfig = TwilioConfig.fromEnvironment() else {
         preconditionFailure("Cannot read twilio config from environment")
     }
-    try routes(application, twilioConfig: twilioConfig)
+    guard let basicAuthConfig = BasicAuthConfig.fromEnvironment() else {
+        preconditionFailure("Cannor read basic auth config from environment")
+    }
+    try routes(application, basicAuthConfig: basicAuthConfig, twilioConfig: twilioConfig)
 }
